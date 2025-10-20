@@ -1,1 +1,73 @@
-<p style="color: purple;">Ezar</p>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Latar Bintang Bergerak</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: radial-gradient(circle at bottom, #001a33, #000814);
+      height: 100vh;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="sky"></canvas>
+
+  <script>
+    const canvas = document.getElementById("sky");
+    const ctx = canvas.getContext("2d");
+
+    let stars = [];
+    const numStars = 200;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    for (let i = 0; i < numStars; i++) {
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        radius: Math.random() * 1.5,
+        speed: Math.random() * 0.3 + 0.05,
+        opacity: Math.random()
+      });
+    }
+
+    function drawStars() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let s of stars) {
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${s.opacity})`;
+        ctx.fill();
+
+        // gerakkan bintang ke bawah perlahan
+        s.y += s.speed;
+        if (s.y > canvas.height) {
+          s.y = 0;
+          s.x = Math.random() * canvas.width;
+        }
+
+        // efek kedip
+        s.opacity += (Math.random() - 0.5) * 0.05;
+        s.opacity = Math.min(Math.max(s.opacity, 0.2), 1);
+      }
+      requestAnimationFrame(drawStars);
+    }
+
+    drawStars();
+  </script>
+</body>
+</html>
