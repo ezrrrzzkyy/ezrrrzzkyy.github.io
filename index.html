@@ -1,195 +1,278 @@
-<!DOCTYPE html>
+<!doctype html>
+
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login Langit Malam</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Login — Langit Malam</title>
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      height: 100vh;
-      font-family: "Poppins", sans-serif;
-    }
+    /* Reset */
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body,#app{height:100%}
+    body{
+      font-family: Inter, UI-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      color:#e9f0ff;
+      overflow:hidden;
+      background: radial-gradient(ellipse at bottom, #0b1630 0%, #03040a 70%);
+    }/* Canvas fullscreen */
+canvas{position:fixed;inset:0;z-index:0;display:block}
 
-    canvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 0;
-      display: block;
-    }
+/* Center card */
+.card{
+  position:relative;z-index:3;width:360px;max-width:92%;margin:clamp(40px,10vh,120px) auto;padding:22px;border-radius:16px;
+  background:linear-gradient(180deg, rgba(17,29,55,0.45), rgba(8,12,20,0.45));
+  box-shadow: 0 8px 30px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
+  backdrop-filter: blur(6px) saturate(120%);
+  border:1px solid rgba(255,255,255,0.04);
+  text-align:center
+}
 
-    .login-box {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(0, 0, 30, 0.7);
-      border-radius: 20px;
-      box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
-      padding: 40px;
-      width: 300px;
-      color: #fff;
-      z-index: 1;
-      backdrop-filter: blur(10px);
-      text-align: center;
-    }
+h1{font-size:1.25rem;margin-bottom:6px;letter-spacing:0.2px}
+p.lead{font-size:0.85rem;color:rgba(233,240,255,0.75);margin-bottom:14px}
 
-    .login-box h2 {
-      margin-bottom: 20px;
-    }
+form{display:grid;gap:10px}
+label{display:block;text-align:left;font-size:0.78rem;color:rgba(233,240,255,0.8);margin-bottom:6px}
+input[type="email"],input[type="password"]{
+  width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);
+  background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));color:#eaf4ff;font-size:0.95rem;
+  outline:none;transition:transform .12s ease, box-shadow .12s ease;
+}
+input:focus{box-shadow:0 6px 20px rgba(0,0,0,0.6);transform:translateY(-2px)}
 
-    .login-box input {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border: none;
-      border-radius: 5px;
-      outline: none;
-    }
+.actions{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:6px}
+.btn{
+  padding:10px 14px;border-radius:10px;border:0;background:linear-gradient(90deg,#4b6ef6,#7a9bff);color:white;font-weight:600;cursor:pointer;
+  box-shadow:0 6px 18px rgba(74,100,240,0.28);transition:transform .12s ease
+}
+.btn:active{transform:translateY(1px)}
 
-    .login-box button {
-      width: 100%;
-      padding: 10px;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
+.muted{font-size:0.83rem;color:rgba(233,240,255,0.55)}
+.hint{font-size:0.78rem;color:#ffb4b4}
 
-    .login-box button:hover {
-      background: #0056b3;
-    }
+/* small footer */
+.small{margin-top:10px;font-size:0.72rem;color:rgba(233,240,255,0.45)}
 
-    .message {
-      margin-top: 10px;
-      font-size: 14px;
-    }
+/* falling star animation container */
+.falling-wrap{position:fixed;inset:0;pointer-events:none;z-index:2}
+
+/* success box */
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:26px;background:rgba(10,20,30,0.7);padding:10px 16px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);z-index:5;color:#dfffe8}
+
+/* small responsive tweaks */
+@media (min-width:900px){.card{width:420px}}
+
   </style>
 </head>
 <body>
-  <canvas id="sky"></canvas>
+  <div id="app">
+    <canvas id="stars"></canvas>
+    <canvas id="meteor" style="position:fixed;inset:0;z-index:1;pointer-events:none"></canvas><div class="falling-wrap" id="falling"></div>
 
-  <div class="login-box">
-    <h2>Login</h2>
-    <form id="loginForm">
-      <input type="email" id="email" placeholder="Email" required>
-      <input type="password" id="password" placeholder="Password" required>
-      <button type="submit">Masuk</button>
-      <div class="message" id="message"></div>
-    </form>
-  </div>
+<div class="card" role="main" aria-labelledby="title">
+  <h1 id="title">Masuk — Langit Malam</h1>
+  <p class="lead">Masukkan email dan kata sandi. Jika email salah, bintang akan jatuh.</p>
 
-  <script>
-    const canvas = document.getElementById("sky");
-    const ctx = canvas.getContext("2d");
-    let stars = [];
-    const numStars = 200;
-    let meteors = [];
+  <form id="loginForm" autocomplete="off">
+    <div>
+      <label for="email">Email</label>
+      <input id="email" type="email" value="" placeholder="contoh@domain.com" required />
+    </div>
+    <div>
+      <label for="pass">Kata sandi</label>
+      <input id="pass" type="password" placeholder="********" required />
+    </div>
 
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+    <div class="actions">
+      <div class="muted small">Belum punya akun? <span class="hint">— hanya demo</span></div>
+      <button class="btn" type="submit">Masuk</button>
+    </div>
+
+    <div class="small">Email tes: <code>kurenailima@gmail.com</code> — sandi: <code>12345678</code></div>
+  </form>
+</div>
+
+<div id="toast" class="toast" style="display:none">Berhasil masuk — mengarahkan...</div>
+
+  </div>  <script>
+    /* ---------- Starfield (background) ---------- */
+    const canvas = document.getElementById('stars');
+    const ctx = canvas.getContext('2d');
+    const meteorCanvas = document.getElementById('meteor');
+    const mctx = meteorCanvas.getContext('2d');
+
+    function fit() {
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = innerWidth * dpr; canvas.height = innerHeight * dpr; canvas.style.width = innerWidth + 'px'; canvas.style.height = innerHeight + 'px';
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      meteorCanvas.width = innerWidth * dpr; meteorCanvas.height = innerHeight * dpr; meteorCanvas.style.width = innerWidth + 'px'; meteorCanvas.style.height = innerHeight + 'px';
+      mctx.setTransform(dpr,0,0,dpr,0,0);
     }
-    window.addEventListener("resize", resizeCanvas);
-    resizeCanvas();
+    window.addEventListener('resize', fit);
+    fit();
 
-    for (let i = 0; i < numStars; i++) {
+    const stars = [];
+    const STAR_COUNT = Math.max(80, Math.floor((innerWidth*innerHeight)/9000));
+    for(let i=0;i<STAR_COUNT;i++){
       stars.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        radius: Math.random() * 1.5,
-        speed: Math.random() * 0.3 + 0.05,
-        opacity: Math.random()
+        x: Math.random()*innerWidth,
+        y: Math.random()*innerHeight,
+        r: Math.random()*1.3+0.2,
+        alpha: Math.random()*0.9+0.1,
+        vx: (Math.random()-0.5)*0.02,
+        vy: (Math.random()-0.5)*0.02,
+        twinkle: Math.random()*0.02
       });
     }
 
-    function createMeteor() {
-      meteors.push({
-        x: Math.random() * canvas.width,
-        y: 0,
-        length: Math.random() * 80 + 30,
-        speed: Math.random() * 10 + 5,
-        angle: Math.PI / 4,
-        opacity: 1
-      });
-    }
+    function drawStars(){
+      ctx.clearRect(0,0,innerWidth,innerHeight);
+      // faint milky band
+      const g = ctx.createLinearGradient(0,innerHeight*0.2,0,innerHeight);
+      g.addColorStop(0,'rgba(255,255,255,0.02)');
+      g.addColorStop(1,'rgba(255,255,255,0.00)');
+      ctx.fillStyle = g; ctx.fillRect(0,0,innerWidth,innerHeight);
 
-    function drawStars() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-      gradient.addColorStop(0, "#001a33");
-      gradient.addColorStop(1, "#000814");
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // bintang statis
-      for (let s of stars) {
+      for(const s of stars){
+        s.x += s.vx; s.y += s.vy; s.alpha += (Math.random()-0.5)*s.twinkle;
+        if(s.x < -10) s.x = innerWidth+10; if(s.x>innerWidth+10) s.x=-10;
+        if(s.y < -10) s.y = innerHeight+10; if(s.y>innerHeight+10) s.y=-10;
+        s.alpha = Math.max(0.05, Math.min(1, s.alpha));
         ctx.beginPath();
-        ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255,255,255,${s.opacity})`;
+        ctx.globalAlpha = s.alpha;
+        ctx.fillStyle = 'white';
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
         ctx.fill();
-
-        s.y += s.speed;
-        if (s.y > canvas.height) {
-          s.y = 0;
-          s.x = Math.random() * canvas.width;
-        }
-
-        s.opacity += (Math.random() - 0.5) * 0.05;
-        s.opacity = Math.min(Math.max(s.opacity, 0.2), 1);
       }
-
-      // meteor (bintang jatuh)
-      for (let m of meteors) {
-        ctx.beginPath();
-        ctx.moveTo(m.x, m.y);
-        ctx.lineTo(
-          m.x - m.length * Math.cos(m.angle),
-          m.y - m.length * Math.sin(m.angle)
-        );
-        ctx.strokeStyle = `rgba(255,255,255,${m.opacity})`;
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        m.x += m.speed * Math.cos(m.angle);
-        m.y += m.speed * Math.sin(m.angle);
-        m.opacity -= 0.02;
-      }
-
-      meteors = meteors.filter(m => m.opacity > 0);
-
-      requestAnimationFrame(drawStars);
+      ctx.globalAlpha = 1;
     }
 
-    drawStars();
+    let last = 0;
+    function loop(t){
+      const dt = t - last; last = t;
+      drawStars();
+      updateMeteors(dt);
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
 
-    // login
-    const form = document.getElementById("loginForm");
-    const msg = document.getElementById("message");
+    /* ---------- Meteor layer (for occasional slow-moving streaks) ---------- */
+    const meteors = [];
+    function spawnMeteor(){
+      meteors.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight*0.5, vx: Math.random()*-6-2, vy: Math.random()*2+1, life: Math.random()*600+600, age:0});
+    }
+    setInterval(()=>{ if(Math.random() < 0.22) spawnMeteor(); }, 1200);
 
-    form.addEventListener("submit", function(e) {
-      e.preventDefault();
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
-
-      if (email === "kurenailima@gmail.com" && password === "12345678") {
-        msg.style.color = "lightgreen";
-        msg.textContent = "Login berhasil!";
-      } else {
-        msg.style.color = "red";
-        msg.textContent = "Ada yang salah bro, teliti lagi dong";
-        for (let i = 0; i < 5; i++) {
-          setTimeout(createMeteor, i * 200);
-        }
+    function updateMeteors(dt){
+      mctx.clearRect(0,0,innerWidth,innerHeight);
+      for(let i=meteors.length-1;i>=0;i--){
+        const m = meteors[i]; m.age += dt;
+        m.x += m.vx * (dt/16); m.y += m.vy * (dt/16);
+        const t = 1 - (m.age / m.life);
+        if(t<=0){meteors.splice(i,1); continue}
+        mctx.globalAlpha = Math.max(0, t);
+        mctx.beginPath();
+        mctx.moveTo(m.x, m.y);
+        mctx.lineTo(m.x - m.vx*6, m.y - m.vy*6);
+        mctx.lineWidth = 1.6; mctx.strokeStyle = 'rgba(255,255,255,0.9)'; mctx.stroke();
       }
+      mctx.globalAlpha = 1;
+    }
+
+    /* ---------- Falling star (when email wrong) ---------- */
+    const fallingWrap = document.getElementById('falling');
+    function spawnFallingStar(x, y){
+      const el = document.createElement('div');
+      const size = Math.random()*8+8;
+      el.style.position = 'absolute'; el.style.left = (x - size/2)+'px'; el.style.top = (y - size/2)+'px';
+      el.style.width = size+'px'; el.style.height = size+'px'; el.style.borderRadius = '50%';
+      el.style.pointerEvents = 'none'; el.style.zIndex = 4;
+      el.style.boxShadow = '0 0 10px rgba(255,255,255,0.9), inset 0 0 6px rgba(255,255,240,0.6)';
+      // create tail using radial-gradient background
+      el.style.background = 'radial-gradient(circle at 35% 30%, #fff, rgba(255,255,255,0.9) 30%, rgba(255,235,120,0.6) 60%, transparent 70%)';
+      fallingWrap.appendChild(el);
+
+      const destX = x + (Math.random()*200 - 100);
+      const destY = innerHeight + 60;
+      el.animate([
+        { transform: `translate(0px,0px) rotate(0deg)`, opacity:1 },
+        { transform: `translate(${destX-x}px, ${destY-y}px) rotate(40deg)`, opacity:0.02 }
+      ],{duration: 1200 + Math.random()*800, easing:'cubic-bezier(.2,.8,.2,1)'}).onfinish = ()=> el.remove();
+    }
+
+    function rainOfStars(originX, originY, count=6){
+      for(let i=0;i<count;i++){
+        setTimeout(()=> spawnFallingStar(originX + (Math.random()*60-30), originY + (Math.random()*40-20)), i*80);
+      }
+    }
+
+    /* ---------- Form logic ---------- */
+    const login = document.getElementById('loginForm');
+    const emailInput = document.getElementById('email');
+    const passInput = document.getElementById('pass');
+    const toast = document.getElementById('toast');
+
+    // preset values shown as hint but input empty for user to try
+    const ALLOWED_EMAIL = 'kurenailima@gmail.com';
+    const ALLOWED_PASS = '12345678';
+
+    login.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const em = emailInput.value.trim();
+      const pw = passInput.value;
+
+      // quick UI feedback
+      if(em.toLowerCase() !== ALLOWED_EMAIL){
+        // shake card and release falling stars from the email field position
+        const rect = emailInput.getBoundingClientRect();
+        const originX = rect.left + rect.width/2; const originY = rect.top + rect.height/2;
+
+        // small shake
+        const card = document.querySelector('.card');
+        card.animate([
+          { transform: 'translateX(0)'}, { transform: 'translateX(-8px)'}, { transform: 'translateX(6px)'}, { transform: 'translateX(-4px)'}, { transform: 'translateX(0)'}
+        ], { duration: 420, easing: 'ease-in-out' });
+
+        // spawn falling stars
+        rainOfStars(originX, originY, 10);
+
+        // subtle hint
+        showHint('Email tidak terdaftar — lihat bintang yang jatuh');
+        return;
+      }
+
+      if(pw !== ALLOWED_PASS){
+        // wrong password: small shake on password field
+        passInput.animate([
+          { transform: 'translateX(0)'}, { transform: 'translateX(-6px)'}, { transform: 'translateX(6px)'}, { transform: 'translateX(0)'}
+        ], { duration: 420, easing: 'ease-in-out' });
+        showHint('Kata sandi salah');
+        return;
+      }
+
+      // success
+      showToast('Berhasil masuk — selamat!');
+      // redirect to dashboard.html (user can create that); immediate
+      setTimeout(()=>{ window.location.href = 'dashboard.html'; }, 550);
     });
-  </script>
-</body>
+
+    function showHint(text){
+      // reuse toast area with different style
+      toast.style.background = 'rgba(40,8,12,0.7)'; toast.style.color = '#ffdede';
+      toast.textContent = text; toast.style.display = 'block';
+      clearTimeout(toast._t); toast._t = setTimeout(()=>{ toast.style.display='none'; }, 2200);
+    }
+
+    function showToast(text){
+      toast.style.background = 'linear-gradient(90deg,#2ecc71,#34d399)'; toast.style.color = '#072012';
+      toast.textContent = text; toast.style.display = 'block';
+      clearTimeout(toast._t); toast._t = setTimeout(()=>{ toast.style.display='none'; }, 1600);
+    }
+
+    // prefill nothing but show placeholder by focusing hint — user asked to have those credentials available
+    // We show them as hint text below the form (already present)
+
+    // accessibility: focus first input
+    emailInput.focus();
+
+  </script></body>
 </html>
