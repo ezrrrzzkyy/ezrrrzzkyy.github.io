@@ -3,35 +3,100 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Latar Bintang Bergerak</title>
+  <title>Login Langit Malam</title>
   <style>
     html, body {
       margin: 0;
       padding: 0;
       overflow: hidden;
-      background: radial-gradient(circle at bottom, #001a33, #000814);
       height: 100vh;
+      font-family: "Poppins", sans-serif;
     }
+
     canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
       display: block;
+    }
+
+    .login-box {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 30, 0.7);
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+      padding: 40px;
+      width: 300px;
+      color: #fff;
+      z-index: 1;
+      backdrop-filter: blur(10px);
+      text-align: center;
+    }
+
+    .login-box h2 {
+      margin-bottom: 20px;
+    }
+
+    .login-box input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 5px;
+      outline: none;
+    }
+
+    .login-box button {
+      width: 100%;
+      padding: 10px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .login-box button:hover {
+      background: #0056b3;
+    }
+
+    .message {
+      margin-top: 10px;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
   <canvas id="sky"></canvas>
 
+  <div class="login-box">
+    <h2>Login</h2>
+    <form id="loginForm">
+      <input type="email" id="email" placeholder="Email" required>
+      <input type="password" id="password" placeholder="Password" required>
+      <button type="submit">Masuk</button>
+      <div class="message" id="message"></div>
+    </form>
+  </div>
+
   <script>
     const canvas = document.getElementById("sky");
     const ctx = canvas.getContext("2d");
-
     let stars = [];
     const numStars = 200;
+    let meteors = [];
 
     function resizeCanvas() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
     }
-
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
 
@@ -45,29 +110,86 @@
       });
     }
 
+    function createMeteor() {
+      meteors.push({
+        x: Math.random() * canvas.width,
+        y: 0,
+        length: Math.random() * 80 + 30,
+        speed: Math.random() * 10 + 5,
+        angle: Math.PI / 4,
+        opacity: 1
+      });
+    }
+
     function drawStars() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, "#001a33");
+      gradient.addColorStop(1, "#000814");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // bintang statis
       for (let s of stars) {
         ctx.beginPath();
         ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 255, 255, ${s.opacity})`;
+        ctx.fillStyle = `rgba(255,255,255,${s.opacity})`;
         ctx.fill();
 
-        // gerakkan bintang ke bawah perlahan
         s.y += s.speed;
         if (s.y > canvas.height) {
           s.y = 0;
           s.x = Math.random() * canvas.width;
         }
 
-        // efek kedip
         s.opacity += (Math.random() - 0.5) * 0.05;
         s.opacity = Math.min(Math.max(s.opacity, 0.2), 1);
       }
+
+      // meteor (bintang jatuh)
+      for (let m of meteors) {
+        ctx.beginPath();
+        ctx.moveTo(m.x, m.y);
+        ctx.lineTo(
+          m.x - m.length * Math.cos(m.angle),
+          m.y - m.length * Math.sin(m.angle)
+        );
+        ctx.strokeStyle = `rgba(255,255,255,${m.opacity})`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        m.x += m.speed * Math.cos(m.angle);
+        m.y += m.speed * Math.sin(m.angle);
+        m.opacity -= 0.02;
+      }
+
+      meteors = meteors.filter(m => m.opacity > 0);
+
       requestAnimationFrame(drawStars);
     }
 
     drawStars();
+
+    // login
+    const form = document.getElementById("loginForm");
+    const msg = document.getElementById("message");
+
+    form.addEventListener("submit", function(e) {
+      e.preventDefault();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      if (email === "kurenailima@gmail.com" && password === "12345678") {
+        msg.style.color = "lightgreen";
+        msg.textContent = "Login berhasil!";
+      } else {
+        msg.style.color = "red";
+        msg.textContent = "Ada yang salah bro, teliti lagi dong";
+        for (let i = 0; i < 5; i++) {
+          setTimeout(createMeteor, i * 200);
+        }
+      }
+    });
   </script>
 </body>
 </html>
