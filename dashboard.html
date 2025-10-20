@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dashboard — Sekolah Modern</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;font-family:Inter,system-ui,sans-serif;color:#e9f0ff;overflow:auto;
+      background:radial-gradient(ellipse at bottom,#0b1630 0%,#03040a 70%)}
+    canvas{position:fixed;inset:0;z-index:0;display:block}
+    header{
+      position:relative;z-index:2;text-align:center;padding:100px 20px 60px;
+      background:rgba(10,20,40,0.3);backdrop-filter:blur(4px);
+    }
+    header h1{font-size:2rem;letter-spacing:1px;margin-bottom:10px}
+    header p{color:rgba(233,240,255,0.7);font-size:1rem}
+
+    main{
+      position:relative;z-index:2;padding:40px 20px 100px;max-width:800px;margin:auto;line-height:1.6;
+    }
+    section{margin-bottom:60px}
+    h2{font-size:1.4rem;margin-bottom:12px;color:#bcd0ff}
+    p{margin-bottom:14px;font-size:1rem;color:rgba(233,240,255,0.85)}
+    ul{margin-left:18px}
+    li{margin-bottom:6px}
+
+    footer{
+      text-align:center;padding:30px 10px;color:rgba(233,240,255,0.55);font-size:0.8rem;z-index:2;position:relative
+    }
+  </style>
+</head>
+<body>
+  <canvas id="stars"></canvas>
+  <header>
+    <h1>Selamat Datang di Sekolah Modern</h1>
+    <p>Mari menatap masa depan dengan pendidikan yang berpikir maju dan berakar pada nilai.</p>
+  </header>
+
+  <main>
+    <section id="visi">
+      <h2>Visi</h2>
+      <p>Mewujudkan generasi berpengetahuan luas, kreatif, dan berkarakter, yang mampu beradaptasi dengan kemajuan teknologi tanpa kehilangan kemanusiaannya.</p>
+    </section>
+
+    <section id="misi">
+      <h2>Misi</h2>
+      <ul>
+        <li>Mendorong pembelajaran berbasis proyek dan kolaborasi nyata.</li>
+        <li>Mengintegrasikan teknologi untuk mempermudah, bukan menggantikan, proses belajar manusiawi.</li>
+        <li>Mengajarkan kepemimpinan, empati, dan tanggung jawab sosial sejak dini.</li>
+        <li>Membangun lingkungan sekolah yang aman, inklusif, dan menyenangkan.</li>
+      </ul>
+    </section>
+
+    <section id="modern">
+      <h2>Bagaimana Seharusnya Sekolah Modern</h2>
+      <p>Sekolah modern bukan hanya gedung megah dengan perangkat canggih, melainkan ruang hidup yang menumbuhkan rasa ingin tahu. Di sana, guru menjadi fasilitator, bukan satu-satunya sumber ilmu.</p>
+      <p>Pembelajaran bersifat fleksibel, memanfaatkan teknologi untuk menjembatani dunia nyata dan dunia ide. Laboratorium digital berdampingan dengan taman terbuka, kelas diskusi berjalan seiring dengan kegiatan sosial.</p>
+      <p>Yang terpenting, sekolah modern menyiapkan murid bukan hanya untuk pekerjaan, tapi untuk kehidupan—untuk berpikir kritis, berkolaborasi, dan berbelas kasih.</p>
+    </section>
+  </main>
+
+  <footer>
+    © 2025 Sekolah Modern — Langit yang sama, mimpi yang terus tumbuh.
+  </footer>
+
+  <script>
+    // Bintang bergerak
+    const canvas = document.getElementById('stars');
+    const ctx = canvas.getContext('2d');
+    function fit(){
+      const dpr = window.devicePixelRatio||1;
+      canvas.width=innerWidth*dpr;canvas.height=innerHeight*dpr;
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+    }
+    fit(); window.addEventListener('resize',fit);
+    const stars=[];
+    const COUNT=Math.max(100,innerWidth*innerHeight/9000);
+    for(let i=0;i<COUNT;i++){
+      stars.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+        r:Math.random()*1.4+0.2,alpha:Math.random()*0.8+0.2,vx:(Math.random()-0.5)*0.05,vy:(Math.random()-0.5)*0.05});
+    }
+    function draw(){
+      ctx.clearRect(0,0,innerWidth,innerHeight);
+      for(const s of stars){
+        s.x+=s.vx; s.y+=s.vy;
+        if(s.x<0)s.x=innerWidth; if(s.x>innerWidth)s.x=0;
+        if(s.y<0)s.y=innerHeight; if(s.y>innerHeight)s.y=0;
+        ctx.globalAlpha=s.alpha;
+        ctx.beginPath();ctx.fillStyle='white';ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();
+      }
+      ctx.globalAlpha=1;
+      requestAnimationFrame(draw);
+    }
+    draw();
+  </script>
+</body>
+</html>
