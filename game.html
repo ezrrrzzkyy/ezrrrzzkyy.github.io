@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Game Tebak Angka — Langit Malam</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;font-family:Inter,system-ui,sans-serif;color:#e9f0ff;
+      background:radial-gradient(ellipse at bottom,#0b1630 0%,#03040a 70%)}
+    canvas{position:fixed;inset:0;z-index:0;display:block}
+    main{position:relative;z-index:2;text-align:center;padding:80px 20px}
+    h1{font-size:1.8rem;margin-bottom:20px}
+    input,button{font-size:1rem;padding:10px 16px;border-radius:8px;border:0}
+    input{width:80px;text-align:center;margin-right:6px;background:rgba(255,255,255,0.1);
+          color:white}
+    button{background:linear-gradient(90deg,#4b6ef6,#7a9bff);color:white;
+           font-weight:600;cursor:pointer;transition:0.2s}
+    button:hover{filter:brightness(1.1)}
+    p{margin-top:20px;font-size:1rem;color:rgba(233,240,255,0.8)}
+    a.back{display:inline-block;margin-top:30px;color:#bcd0ff;text-decoration:none}
+    #restart{display:none;margin-top:16px;background:linear-gradient(90deg,#37bb5f,#6cff9d)}
+  </style>
+</head>
+<body>
+  <canvas id="stars"></canvas>
+  <main>
+    <h1>Tebak Angka</h1>
+    <p>Saya sudah memilih angka rahasia antara <strong>1–20</strong>. Coba tebak!</p>
+    <div style="margin-top:16px">
+      <input type="number" id="guess" min="1" max="20" />
+      <button id="check">Cek</button>
+    </div>
+    <p id="result"></p>
+    <p id="chance"></p>
+    <button id="restart">Main Lagi</button>
+    <a href="dashboard.html" class="back">← Kembali ke Dashboard</a>
+  </main>
+
+  <script>
+    // === Latar bintang statis ===
+    const c = document.getElementById('stars'), x = c.getContext('2d');
+    function fit(){ c.width = innerWidth; c.height = innerHeight }
+    fit(); addEventListener('resize', fit);
+
+    const stars = [];
+    for(let i=0;i<100;i++){
+      stars.push({
+        x: Math.random()*innerWidth,
+        y: Math.random()*innerHeight,
+        r: Math.random()*1.4+0.2,
+        vx: (Math.random()-0.5)*0.05,
+        vy: (Math.random()-0.5)*0.05
+      });
+    }
+
+    const meteors = [];
+
+    function draw(){
+      x.clearRect(0,0,innerWidth,innerHeight);
+      for(const a of stars){
+        a.x+=a.vx; a.y+=a.vy;
+        if(a.x<0)a.x=innerWidth;if(a.x>innerWidth)a.x=0;
+        if(a.y<0)a.y=innerHeight;if(a.y>innerHeight)a.y=0;
+        x.beginPath();x.fillStyle='white';
+        x.arc(a.x,a.y,a.r,0,Math.PI*2);x.fill();
+      }
+      for(let i=meteors.length-1;i>=0;i--){
+        const m = meteors[i];
+        m.x += m.vx; m.y += m.vy; m.life -= 1;
+        x.beginPath();
+        const grad = x.createLinearGradient(m.x,m.y,m.x-m.vx*5,m.y-m.vy*5);
+        grad.addColorStop(0,'rgba(255,255,255,1)');
+        grad.addColorStop(1,'rgba(255,255,255,0)');
+        x.strokeStyle = grad;
+        x.lineWidth = 2;
+        x.moveTo(m.x,m.y);
+        x.lineTo(m.x - m.vx*8, m.y - m.vy*8);
+        x.stroke();
+        if(m.life<=0) meteors.splice(i,1);
+      }
+      requestAnimationFrame(draw);
+    }
+    draw();
+
+    function spawnMeteor(){
+      for(let i=0;i<6;i++){
+        meteors.push({
+          x: Math.random()*innerWidth,
+          y: Math.random()*innerHeight*0.3,
+          vx: Math.random()*4+2,
+          vy: Math.random()*4+2,
+          life: 60+Math.random()*30
+        });
+      }
+    }
+
+    // === Logika game ===
+    let secret = Math.floor(Math.random()*20)+1;
+    let tries = 3;
+    const input = document.getElementById('guess');
+    const btn = document.getElementById('check');
+    const res = document.getElementById('result');
+    const chance = document.getElementById('chance');
+    const restart = document.getElementById('restart');
+    chance.textContent = `Kesempatan tersisa: ${tries}`;
+
+    function resetGame(){
+      secret = Math.floor(Math.random()*20)+1;
+      tries = 3;
+      btn.disabled = false;
+      input.value = '';
+      res.textContent = '';
+      chance.textContent = `Kesempatan tersisa: ${tries}`;
+      restart.style.display = 'none';
+    }
+
+    btn.addEventListener('click', ()=>{
+      const val = parseInt(input.value);
+      if(isNaN(val)){res.textContent='Masukkan angka dulu.';return;}
+      if(val<1 || val>20){res.textContent='Angka harus 1–20.';return;}
+
+      if(val===secret){
+        res.textContent = `🎉 Benar! Angkanya ${secret}!`;
+        btn.disabled = true;
+        restart.style.display = 'inline-block';
+      } else {
+        tries--;
+        spawnMeteor(); // efek bintang jatuh
+        if(tries>0){
+          res.textContent = val<secret ? 'Terlalu kecil!' : 'Terlalu besar!';
+          chance.textContent = `Kesempatan tersisa: ${tries}`;
+        } else {
+          res.textContent = `💀 Kesempatan habis. Angkanya ${secret}.`;
+          chance.textContent = 'Game selesai.';
+          btn.disabled = true;
+          restart.style.display = 'inline-block';
+        }
+      }
+    });
+
+    restart.addEventListener('click', resetGame);
+  </script>
+</body>
+</html>
